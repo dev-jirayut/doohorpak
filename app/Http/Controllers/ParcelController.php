@@ -67,6 +67,7 @@ class ParcelController extends Controller
         ]);
 
         $room   = Room::with('activeRental.tenant')->find($data['room_id']);
+        abort_unless($room && $room->property_id === $property->id, 403);
         $tenant = $room->activeRental?->tenant;
 
         $imagePath = null;

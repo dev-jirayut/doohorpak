@@ -65,12 +65,20 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice)
     {
+        $property = request()->get('current_property');
+        abort_if($property && $invoice->property_id !== $property->id, 403);
+        abort_if(!$property && ! request()->user()->isSuperAdmin(), 403);
+
         $invoice->load(['rental.room.roomType', 'rental.tenant', 'items', 'payments']);
         return view('invoices.show', compact('invoice'));
     }
 
     public function pdf(Invoice $invoice)
     {
+        $property = request()->get('current_property');
+        abort_if($property && $invoice->property_id !== $property->id, 403);
+        abort_if(!$property && ! request()->user()->isSuperAdmin(), 403);
+
         $invoice->load(['rental.room.roomType', 'rental.tenant', 'items', 'property']);
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'))->setPaper('a4', 'portrait');
         return $pdf->stream('invoice-' . $invoice->invoice_number . '.pdf');
@@ -78,6 +86,10 @@ class InvoiceController extends Controller
 
     public function markPaid(Request $request, Invoice $invoice)
     {
+        $property = $request->get('current_property');
+        abort_if($property && $invoice->property_id !== $property->id, 403);
+        abort_if(!$property && ! $request->user()->isSuperAdmin(), 403);
+
         $request->validate([
             'payment_date'     => 'required|date',
             'payment_method'   => 'required|in:cash,transfer,other',
@@ -102,6 +114,10 @@ class InvoiceController extends Controller
 
     public function destroy(Invoice $invoice)
     {
+        $property = request()->get('current_property');
+        abort_if($property && $invoice->property_id !== $property->id, 403);
+        abort_if(!$property && ! request()->user()->isSuperAdmin(), 403);
+
         if ($invoice->status === 'paid') {
             return back()->with('error', 'ไม่สามารถลบใบแจ้งหนี้ที่ชำระแล้ว');
         }

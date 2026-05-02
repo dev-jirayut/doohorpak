@@ -58,6 +58,10 @@ class MaintenanceController extends Controller
             'video'       => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:51200',
         ]);
 
+        $room = Room::with('activeRental.tenant')
+            ->where('property_id', $property->id)
+            ->findOrFail($data['room_id']);
+
         $imagePath = null;
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('maintenance', config('filesystems.default'));
@@ -72,6 +76,7 @@ class MaintenanceController extends Controller
             'request_number' => 'MR-' . strtoupper(Str::random(8)),
             'property_id'    => $property->id,
             'room_id'        => $data['room_id'],
+            'tenant_id'      => $room->activeRental?->tenant?->id,
             'title'          => $data['title'],
             'description'    => $data['description'],
             'category'       => $data['category'],

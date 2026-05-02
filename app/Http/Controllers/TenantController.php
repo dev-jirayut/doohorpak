@@ -9,7 +9,15 @@ class TenantController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Tenant::with('activeRental.room');
+        $property = $request->get('current_property');
+
+        $query = Tenant::with('activeRental.room')
+            ->when($property, function ($query) use ($property) {
+                $query->where(function ($propertyQuery) use ($property) {
+                    $propertyQuery->where('property_id', $property->id)
+                        ->orWhereHas('rentals.room', fn ($roomQuery) => $roomQuery->where('property_id', $property->id));
+                });
+            });
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -24,14 +32,21 @@ class TenantController extends Controller
         return view('tenants.index', compact('tenants'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        if (! $request->get('current_property')) {
+            return redirect()->route('tenants.index')->with('error', 'กรุณาเลือกหอพักก่อนเพิ่มผู้เช่า');
+        }
+
         return view('tenants.create');
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $property = $request->get('current_property');
+        abort_unless($property, 404);
+
+        $data = $request->validate([
             'name'                      => 'required|string|max:150',
             'id_card'                   => 'nullable|string|max:20',
             'phone'                     => 'nullable|string|max:20',
@@ -42,7 +57,9 @@ class TenantController extends Controller
             'note'                      => 'nullable|string',
         ]);
 
-        Tenant::create($request->all());
+        Tenant::create(array_merge($data, [
+            'property_id' => $property?->id,
+        ]));
 
         return redirect()->route('tenants.index')
             ->with('success', 'เพิ่มผู้เช่าสำเร็จ');
@@ -61,7 +78,13 @@ class TenantController extends Controller
 
     public function update(Request $request, Tenant $tenant)
     {
-        $request->validate([
+        $property = $request->get('current_property');
+
+        if ($property && $tenant->property_id && $tenant->property_id !== $property->id) {
+            abort(403);
+        }
+
+        $data = $request->validate([
             'name'                      => 'required|string|max:150',
             'id_card'                   => 'nullable|string|max:20',
             'phone'                     => 'nullable|string|max:20',
@@ -72,7 +95,11 @@ class TenantController extends Controller
             'note'                      => 'nullable|string',
         ]);
 
-        $tenant->update($request->all());
+        if ($property && !$tenant->property_id) {
+            $data['property_id'] = $property->id;
+        }
+
+        $tenant->update($data);
 
         return redirect()->route('tenants.show', $tenant)
             ->with('success', 'แก้ไขข้อมูลผู้เช่าสำเร็จ');

@@ -24,8 +24,12 @@ class RoomController extends Controller
         return view('rooms.index', compact('rooms', 'floors'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        if (! $request->get('current_property')) {
+            return redirect()->route('rooms.index')->with('error', 'กรุณาเลือกหอพักก่อนเพิ่มห้อง');
+        }
+
         $roomTypes = RoomType::orderBy('name')->get();
         return view('rooms.create', compact('roomTypes'));
     }
@@ -33,6 +37,7 @@ class RoomController extends Controller
     public function store(Request $request)
     {
         $property = $request->get('current_property');
+        abort_unless($property, 404);
 
         $request->validate([
             'room_number'  => 'required|string|max:20|unique:rooms',
@@ -42,7 +47,7 @@ class RoomController extends Controller
         ]);
 
         Room::create($request->only('room_number', 'floor', 'room_type_id', 'description') + [
-            'property_id' => $property?->id,
+            'property_id' => $property->id,
         ]);
 
         return redirect()->route('rooms.index')->with('success', 'เพิ่มห้องพักสำเร็จ');

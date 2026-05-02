@@ -33,6 +33,9 @@ class RentalController extends Controller
     public function create(Request $request)
     {
         $property = $request->get('current_property');
+        if (! $property) {
+            return redirect()->route('rentals.index')->with('error', 'กรุณาเลือกหอพักก่อนเปิดการเช่า');
+        }
 
         $rooms = Room::where('status', 'available')
             ->when($property, fn ($query) => $query->where('property_id', $property->id))
@@ -40,7 +43,13 @@ class RentalController extends Controller
             ->orderBy('room_number')
             ->get();
 
-        $tenants = Tenant::when($property, fn ($query) => $query->where('property_id', $property->id))
+        $tenants = Tenant::when($property, function ($query) use ($property) {
+                $query->where(function ($propertyQuery) use ($property) {
+                    $propertyQuery->where('property_id', $property->id)
+                        ->orWhereNull('property_id')
+                        ->orWhereHas('rentals.room', fn ($roomQuery) => $roomQuery->where('property_id', $property->id));
+                });
+            })
             ->orderBy('name')
             ->get();
 
@@ -59,10 +68,17 @@ class RentalController extends Controller
         ]);
 
         $property = $request->get('current_property');
+        abort_unless($property, 404);
+
         $room = Room::findOrFail($request->room_id);
+        $tenant = Tenant::findOrFail($request->tenant_id);
 
         if ($property && $room->property_id !== $property->id) {
             return back()->with('error', 'ห้องนี้ไม่ได้อยู่ในหอพักที่เลือก')->withInput();
+        }
+
+        if ($property && $tenant->property_id && $tenant->property_id !== $property->id) {
+            return back()->with('error', 'ผู้เช่านี้ไม่ได้อยู่ในหอพักที่เลือก')->withInput();
         }
 
         if ($room->status !== 'available') {
@@ -76,6 +92,10 @@ class RentalController extends Controller
                 'status' => 'active',
             ],
         ));
+
+        if ($property && !$tenant->property_id) {
+            $tenant->update(['property_id' => $property->id]);
+        }
 
         $room->update(['status' => 'occupied']);
 
