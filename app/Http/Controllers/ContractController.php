@@ -29,13 +29,13 @@ class ContractController extends Controller
             return redirect()->route('dashboard')->with('error', 'กรุณาเลือกหอพักก่อนสร้างสัญญา');
         }
 
-        $rentals  = Rental::with(['tenant', 'room'])
+        $rentals  = Rental::with(['tenant', 'room', 'contract'])
             ->where(function ($query) use ($property) {
                 $query->where('property_id', $property->id)
                     ->orWhereHas('room', fn ($roomQuery) => $roomQuery->where('property_id', $property->id));
             })
             ->where('status', 'active')
-            ->whereDoesntHave('contract', fn($q) => $q->whereIn('status', ['active']))
+            ->orderByDesc('start_date')
             ->get();
 
         return view('contracts.create', compact('rentals'));
@@ -64,12 +64,11 @@ class ContractController extends Controller
                 $query->where('property_id', $property->id)
                     ->orWhereHas('room', fn ($roomQuery) => $roomQuery->where('property_id', $property->id));
             })
-            ->whereDoesntHave('contract', fn ($query) => $query->where('status', 'active'))
             ->first();
 
         if (!$rental) {
             return back()
-                ->withErrors(['rental_id' => 'This rental is not available for a new active contract.'])
+                ->withErrors(['rental_id' => 'This rental is not available for a new contract.'])
                 ->withInput();
         }
 
