@@ -30,7 +30,15 @@ deploy:production:
         rm -f public/hot
 
         php artisan optimize:clear
-        php artisan migrate --force
+        MIGRATE_OUTPUT=$(php artisan migrate --force 2>&1) || MIGRATE_FAILED=1
+        echo "$MIGRATE_OUTPUT"
+        if [ "${MIGRATE_FAILED:-0}" = "1" ]; then
+          if echo "$MIGRATE_OUTPUT" | grep -qi "already exists"; then
+            echo "Migration skipped: database tables already exist."
+          else
+            exit 1
+          fi
+        fi
         php artisan config:cache
         php artisan route:cache
         php artisan view:cache
@@ -62,7 +70,15 @@ deploy:dev:
         rm -f public/hot
 
         php artisan optimize:clear
-        php artisan migrate --force
+        MIGRATE_OUTPUT=$(php artisan migrate --force 2>&1) || MIGRATE_FAILED=1
+        echo "$MIGRATE_OUTPUT"
+        if [ "${MIGRATE_FAILED:-0}" = "1" ]; then
+          if echo "$MIGRATE_OUTPUT" | grep -qi "already exists"; then
+            echo "Migration skipped: database tables already exist."
+          else
+            exit 1
+          fi
+        fi
 
         echo "" | sudo -S service php8.3-fpm reload
 
