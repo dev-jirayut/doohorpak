@@ -56,8 +56,8 @@ return [
             'url'                     => env('AWS_URL'),
             'endpoint'                => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
-            'throw'                   => false,
-            'report'                  => false,
+            'throw'                   => true,
+            'report'                  => true,
         ],
 
         // Supabase Storage (S3-compatible)
@@ -70,8 +70,8 @@ return [
             'url'                     => env('SUPABASE_URL'),
             'endpoint'                => env('SUPABASE_ENDPOINT'),
             'use_path_style_endpoint' => true,
-            'throw'                   => false,
-            'report'                  => false,
+            'throw'                   => true,
+            'report'                  => true,
             'visibility'              => 'public',
         ],
 

@@ -63,7 +63,7 @@ class ParcelController extends Controller
             'received_by'     => 'nullable|string|max:50',
             'note'            => 'nullable|string',
             'image'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
-            'video'           => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:51200',
+            'video'           => 'nullable|file|mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/x-matroska|max:10240',
         ]);
 
         $room   = Room::with('activeRental.tenant')->find($data['room_id']);

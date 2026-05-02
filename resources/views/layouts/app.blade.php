@@ -292,6 +292,59 @@ document.addEventListener('submit', function(e) {
         return;
     }
 
+    const maxFileSize = 10 * 1024 * 1024;
+    const maxTotalUploadMb = Number(form.dataset.maxTotalUploadMb || 0);
+    const maxTotalUploadSize = maxTotalUploadMb > 0 ? maxTotalUploadMb * 1024 * 1024 : 0;
+    const oversizedFiles = [];
+    let totalUploadSize = 0;
+
+    form.querySelectorAll('input[type="file"]').forEach(function(input) {
+        Array.from(input.files || []).forEach(function(file) {
+            totalUploadSize += file.size;
+            if (file.size > maxFileSize) {
+                oversizedFiles.push(file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)');
+            }
+        });
+    });
+
+    if (oversizedFiles.length > 0) {
+        e.preventDefault();
+        const message = 'ไฟล์ต้องไม่เกิน 10MB ต่อไฟล์:\n' + oversizedFiles.join('\n');
+
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'ไฟล์ใหญ่เกินไป',
+                text: message,
+                confirmButtonText: 'ตกลง',
+                customClass: { popup: 'swal-jade' },
+            });
+        } else {
+            alert(message);
+        }
+
+        return;
+    }
+
+    if (maxTotalUploadSize > 0 && totalUploadSize > maxTotalUploadSize) {
+        e.preventDefault();
+        const message = 'ไฟล์รวมทั้งหมดต้องไม่เกิน ' + maxTotalUploadMb + 'MB ตอนนี้ประมาณ ' + (totalUploadSize / 1024 / 1024).toFixed(1) + ' MB';
+
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'ไฟล์รวมใหญ่เกินไป',
+                text: message,
+                confirmButtonText: 'ตกลง',
+                customClass: { popup: 'swal-jade' },
+            });
+        } else {
+            alert(message);
+        }
+
+        return;
+    }
+
     form.dataset.submitting = 'true';
 
     const submitter = e.submitter || form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
@@ -325,6 +378,15 @@ Swal.fire({ toast:true, position:'top-end', icon:'error', title:@json(session('e
 @endif
 @if(session('warning'))
 Swal.fire({ toast:true, position:'top-end', icon:'warning', title:@json(session('warning')), showConfirmButton:false, timer:4000, timerProgressBar:true, customClass:{popup:'swal-jade'} });
+@endif
+@if(session('upload_too_large'))
+Swal.fire({
+    icon: 'error',
+    title: 'ไฟล์ใหญ่เกินไป',
+    text: @json(session('upload_too_large')),
+    confirmButtonText: 'ตกลง',
+    customClass: { popup: 'swal-jade' },
+});
 @endif
 </script>
 <style>

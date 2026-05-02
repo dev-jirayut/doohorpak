@@ -12,7 +12,7 @@
     </div>
 </div>
 
-<form method="POST" action="{{ route('contracts.store') }}" enctype="multipart/form-data">
+<form method="POST" action="{{ route('contracts.store') }}" enctype="multipart/form-data" data-max-total-upload-mb="30">
     @csrf
     <div class="row g-3">
         <div class="col-md-7">

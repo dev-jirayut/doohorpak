@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Contract;
 use App\Models\Rental;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ContractController extends Controller
@@ -29,13 +31,16 @@ class ContractController extends Controller
             return redirect()->route('dashboard')->with('error', 'กรุณาเลือกหอพักก่อนสร้างสัญญา');
         }
 
-        $rentals  = Rental::with(['tenant', 'room', 'contract'])
-            ->where(function ($query) use ($property) {
-                $query->where('property_id', $property->id)
-                    ->orWhereHas('room', fn ($roomQuery) => $roomQuery->where('property_id', $property->id));
-            })
+        $rentals  = Rental::query()
+            ->select(['id', 'property_id', 'room_id', 'tenant_id', 'monthly_rent', 'start_date', 'status'])
+            ->with([
+                'tenant:id,name,phone',
+                'room:id,property_id,room_number',
+            ])
+            ->where('property_id', $property->id)
             ->where('status', 'active')
             ->orderByDesc('start_date')
+            ->limit(300)
             ->get();
 
         return view('contracts.create', compact('rentals'));
@@ -46,7 +51,7 @@ class ContractController extends Controller
         $property = $request->get('current_property');
         abort_unless($property, 404);
 
-        $data = $request->validate([
+        $validator = Validator::make($request->all(), [
             'rental_id'             => 'required|exists:rentals,id',
             'start_date'            => 'required|date',
             'end_date'              => 'required|date|after:start_date',
@@ -56,6 +61,26 @@ class ContractController extends Controller
             'paper_contract_images' => 'required|array|min:1|max:20',
             'paper_contract_images.*' => 'required|image|mimes:jpg,jpeg,png|max:10240',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $totalBytes = 0;
+
+            foreach (['file', 'tenant_id_card_copy'] as $field) {
+                if ($request->hasFile($field)) {
+                    $totalBytes += $request->file($field)->getSize();
+                }
+            }
+
+            foreach ($request->file('paper_contract_images', []) as $image) {
+                $totalBytes += $image->getSize();
+            }
+
+            if ($totalBytes > 30 * 1024 * 1024) {
+                $validator->errors()->add('paper_contract_images', 'ไฟล์รวมทั้งหมดต้องไม่เกิน 30MB เพื่อให้สร้างสัญญาได้รวดเร็ว');
+            }
+        });
+
+        $data = $validator->validate();
 
         $rental = Rental::with('room')
             ->where('id', $data['rental_id'])
@@ -76,16 +101,28 @@ class ContractController extends Controller
             $rental->update(['property_id' => $property->id]);
         }
 
-        $filePath = null;
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('contracts', config('filesystems.default'));
-        }
+        try {
+            $disk = config('filesystems.default');
+            $filePath = null;
+            if ($request->hasFile('file')) {
+                $filePath = $request->file('file')->store('contracts', $disk);
+            }
 
-        $idCardCopyPath = $request->file('tenant_id_card_copy')
-            ->store('contracts/id-cards', config('filesystems.default'));
-        $paperContractImagePaths = [];
-        foreach ($request->file('paper_contract_images', []) as $image) {
-            $paperContractImagePaths[] = $image->store('contracts/paper-originals', config('filesystems.default'));
+            $idCardCopyPath = $request->file('tenant_id_card_copy')
+                ->store('contracts/id-cards', $disk);
+            $paperContractImagePaths = [];
+            foreach ($request->file('paper_contract_images', []) as $image) {
+                $paperContractImagePaths[] = $image->store('contracts/paper-originals', $disk);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Contract file upload failed', [
+                'disk' => config('filesystems.default'),
+                'message' => $e->getMessage(),
+            ]);
+
+            return back()
+                ->withInput($request->except(['file', 'tenant_id_card_copy', 'paper_contract_images']))
+                ->with('error', 'อัปโหลดไฟล์สัญญาไม่สำเร็จ กรุณาตรวจสอบการตั้งค่า Storage/S3 แล้วลองใหม่');
         }
 
         Contract::create([
