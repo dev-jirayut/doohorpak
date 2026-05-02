@@ -7,7 +7,6 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -23,7 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', \App\Http\Middleware\CurrentPropertyMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->report(function (Throwable $e) {
+        $exceptions->report(function (\Throwable $e) {
             $request = request();
 
             Log::channel('errors')->error($e->getMessage(), [
@@ -52,7 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
                         'input_keys' => array_keys($request?->except(['password', 'password_confirmation', 'token', '_token']) ?? []),
                     ],
                 ]);
-            } catch (Throwable $logException) {
+            } catch (\Throwable $logException) {
                 Log::channel('errors')->error('Failed to write exception to database', [
                     'exception' => $logException::class,
                     'message' => $logException->getMessage(),
