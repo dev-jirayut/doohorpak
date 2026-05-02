@@ -16,37 +16,58 @@ deploy:production:
   only:
     - main
   script:
-    - ssh $SSH_USER@$SSH_HOST "
-        set -e &&
-        cd /var/www/dormitory/production &&
-        git pull origin main &&
-        composer install --no-dev --optimize-autoloader --no-interaction &&
-        php artisan migrate --force &&
-        php artisan config:cache &&
-        php artisan route:cache &&
-        php artisan view:cache &&
-        sudo systemctl reload php8.3-fpm
-      "
+    - |
+      ssh $SSH_USER@$SSH_HOST '
+        set -e
+        cd /home/ploi/doohorpak.online
+
+        git pull origin main
+
+        composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+        npm ci
+        npm run build
+        rm -f public/hot
+
+        php artisan optimize:clear
+        php artisan migrate --force
+        php artisan config:cache
+        php artisan route:cache
+        php artisan view:cache
+
+        echo "" | sudo -S service php8.3-fpm reload
+
+        echo "Application deployed!"
+      '
   environment:
     name: production
-    url: https://yourdomain.com
+    url: https://doohorpak.online
 
 deploy:dev:
   extends: .base_deploy
   only:
     - dev
   script:
-    - ssh $SSH_USER@$SSH_HOST "
-        set -e &&
-        cd /var/www/dormitory/dev &&
-        git pull origin dev &&
-        composer install --optimize-autoloader --no-interaction &&
-        php artisan migrate --force &&
-        php artisan config:clear &&
-        php artisan route:clear &&
-        php artisan view:clear &&
-        sudo systemctl reload php8.3-fpm
-      "
+    - |
+      ssh $SSH_USER@$SSH_HOST '
+        set -e
+        cd /home/ploi/doohorpak.online
+
+        git pull origin dev
+
+        composer install --no-interaction --prefer-dist --optimize-autoloader
+
+        npm ci
+        npm run build
+        rm -f public/hot
+
+        php artisan optimize:clear
+        php artisan migrate --force
+
+        echo "" | sudo -S service php8.3-fpm reload
+
+        echo "Development deployed!"
+      '
   environment:
     name: development
-    url: https://dev.yourdomain.com
+    url: https://doohorpak.online
