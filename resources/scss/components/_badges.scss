@@ -1,0 +1,46 @@
+@use '../modules/variables' as v;
+@use '../modules/mixins' as m;
+
+.badge {
+    @include m.badge(v.$muted);
+
+    &-success   { @include m.badge(v.$jade); }
+    &-warning   { @include m.badge(v.$warning); }
+    &-danger    { @include m.badge(v.$danger); }
+    &-info      { @include m.badge(v.$info); }
+    &-secondary { @include m.badge(v.$sand-dark, v.$midnight); }
+    &-midnight  { @include m.badge(v.$midnight); }
+}
+
+.bg-success,
+.badge.bg-success { background: v.$success; color: #fff; }
+.bg-warning,
+.badge.bg-warning { background: v.$warning; color: #fff; }
+.bg-danger,
+.badge.bg-danger { background: v.$danger; color: #fff; }
+.bg-info,
+.badge.bg-info { background: v.$info; color: #fff; }
+.bg-secondary,
+.badge.bg-secondary { background: v.$sand-dark; color: v.$midnight; }
+.bg-primary,
+.badge.bg-primary { background: v.$jade; color: #fff; }
+.bg-dark,
+.badge.bg-dark { background: v.$midnight; color: #fff; }
+
+.bg-opacity-10 {
+    --bg-opacity-strength: 0.1;
+}
+
+td.bg-warning,
+th.bg-warning,
+.bg-warning.bg-opacity-10 {
+    background: rgba(v.$warning, 0.1);
+    color: color-mix(in srgb, v.$warning 70%, v.$midnight);
+}
+
+td.bg-info,
+th.bg-info,
+.bg-info.bg-opacity-10 {
+    background: rgba(v.$info, 0.1);
+    color: color-mix(in srgb, v.$info 70%, v.$midnight);
+}

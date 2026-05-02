@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('code', '403')
+@section('icon', '🔒')
+@section('title', 'ไม่มีสิทธิ์เข้าถึง')
+@section('message', 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้ กรุณาติดต่อผู้ดูแลระบบหากคิดว่าเกิดข้อผิดพลาด')

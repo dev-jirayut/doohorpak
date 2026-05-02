@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('code', '419')
+@section('icon', '⏱️')
+@section('title', 'Session หมดอายุ')
+@section('message', 'Session ของคุณหมดอายุแล้ว กรุณา refresh หน้าและลองใหม่อีกครั้ง')

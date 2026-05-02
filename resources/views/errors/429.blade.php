@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('code', '429')
+@section('icon', '🚦')
+@section('title', 'ส่งคำขอมากเกินไป')
+@section('message', 'คุณส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่')

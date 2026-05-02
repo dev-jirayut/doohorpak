@@ -1,0 +1,59 @@
+@use 'variables' as v;
+
+@mixin flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@mixin flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@mixin card($padding: 1.5rem) {
+    background: #fff;
+    border-radius: v.$border-radius;
+    box-shadow: v.$shadow-sm;
+    padding: $padding;
+    border: 1px solid rgba(0, 44, 44, 0.06);
+}
+
+@mixin badge($bg, $color: #fff) {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: $bg;
+    color: $color;
+    gap: 0.25rem;
+}
+
+@mixin btn-primary {
+    background: v.$jade;
+    color: #fff;
+    border: none;
+    border-radius: v.$border-radius-sm;
+    padding: 0.55rem 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+
+    &:hover {
+        background: v.$jade-dark;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+}
+
+@mixin responsive($breakpoint) {
+    @if $breakpoint == 'sm'  { @media (max-width: 576px)  { @content; } }
+    @if $breakpoint == 'md'  { @media (max-width: 768px)  { @content; } }
+    @if $breakpoint == 'lg'  { @media (max-width: 992px)  { @content; } }
+    @if $breakpoint == 'xl'  { @media (max-width: 1200px) { @content; } }
+}

@@ -1,0 +1,140 @@
+@use '../modules/variables' as v;
+@use 'sass:color';
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: v.$border-radius;
+    border: 1px solid rgba(v.$midnight, 0.08);
+    background:
+        linear-gradient(90deg, #fff 30%, rgba(255, 255, 255, 0)),
+        linear-gradient(90deg, rgba(255, 255, 255, 0), #fff 70%) 100% 0,
+        linear-gradient(90deg, rgba(v.$midnight, 0.08), rgba(v.$midnight, 0)),
+        linear-gradient(270deg, rgba(v.$midnight, 0.08), rgba(v.$midnight, 0)) 100% 0;
+    background-color: #fff;
+    background-repeat: no-repeat;
+    background-size: 42px 100%, 42px 100%, 14px 100%, 14px 100%;
+    background-attachment: local, local, scroll, scroll;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    border-radius: v.$border-radius;
+    border: 1px solid rgba(v.$midnight, 0.08);
+    background: #fff;
+}
+
+.card > .table-wrapper,
+.card > .table-responsive {
+    border-radius: 0;
+    border: 0;
+}
+
+table.data-table,
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.875rem;
+    background: #fff;
+
+    thead {
+        background: color.adjust(v.$sand, $lightness: 2%);
+
+        th {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0;
+            color: v.$midnight;
+            border-bottom: 1px solid rgba(v.$midnight, 0.09);
+            white-space: nowrap;
+            vertical-align: middle;
+
+            &:first-child { padding-left: 1.25rem; }
+            &:last-child { padding-right: 1.25rem; }
+        }
+    }
+
+    tbody {
+        tr {
+            transition: background 0.15s, box-shadow 0.15s;
+
+            &:hover {
+                background: rgba(v.$jade, 0.035);
+                box-shadow: inset 3px 0 0 rgba(v.$jade, 0.75);
+            }
+
+            &:last-child td { border-bottom: none; }
+        }
+
+        td {
+            padding: 0.95rem 1rem;
+            color: v.$midnight;
+            vertical-align: middle;
+            border-bottom: 1px solid rgba(v.$midnight, 0.055);
+            line-height: 1.45;
+
+            &:first-child { padding-left: 1.25rem; }
+            &:last-child {
+                padding-right: 1.25rem;
+                white-space: nowrap;
+            }
+        }
+    }
+
+    &.table-sm {
+        th { padding-top: 0.65rem; padding-bottom: 0.65rem; }
+        td { padding-top: 0.7rem; padding-bottom: 0.7rem; }
+    }
+
+    .btn + .btn,
+    form + form {
+        margin-left: 0.35rem;
+    }
+
+    small,
+    .text-muted {
+        color: v.$muted;
+    }
+}
+
+.table-hover tbody tr:hover {
+    background: rgba(v.$jade, 0.035);
+}
+
+.table-active,
+.table-active > td,
+.table-active > th {
+    background: rgba(v.$jade, 0.08);
+}
+
+.table-empty,
+table.data-table td[colspan],
+.table td[colspan] {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: v.$muted;
+}
+
+.card-footer {
+    padding: 0.9rem 1.25rem;
+    background: color.adjust(v.$sand, $lightness: 2%);
+    border-top: 1px solid rgba(v.$midnight, 0.07);
+}
+
+@media (max-width: 768px) {
+    table.data-table,
+    .table {
+        font-size: 0.82rem;
+
+        thead th,
+        tbody td {
+            padding-left: 0.8rem;
+            padding-right: 0.8rem;
+
+            &:first-child { padding-left: 1rem; }
+            &:last-child { padding-right: 1rem; }
+        }
+    }
+}

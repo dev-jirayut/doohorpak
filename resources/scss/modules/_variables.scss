@@ -1,0 +1,33 @@
+// ─── Brand Colors ─────────────────────────────────────────────────────────────
+$jade:     #00A884;
+$mint:     #A1FFD1;
+$midnight: #002C2C;
+$sand:     #F7F5EE;
+
+// Shades
+$jade-dark:   #007A60;
+$jade-light:  #33C9A0;
+$midnight-80: rgba(0, 44, 44, 0.8);
+$sand-dark:   #EAE6DC;
+
+// Status colors
+$success: #00A884;
+$warning: #f5a623;
+$danger:  #e74c3c;
+$info:    #3498db;
+$muted:   #888;
+
+// Typography
+$font-primary: 'Sarabun', 'Noto Sans Thai', sans-serif;
+$font-mono:    'JetBrains Mono', monospace;
+
+// Spacing
+$sidebar-width: 260px;
+$header-height: 60px;
+$border-radius: 12px;
+$border-radius-sm: 8px;
+
+// Shadows
+$shadow-sm: 0 1px 4px rgba(0, 44, 44, 0.08);
+$shadow:    0 4px 16px rgba(0, 44, 44, 0.10);
+$shadow-lg: 0 8px 32px rgba(0, 44, 44, 0.14);

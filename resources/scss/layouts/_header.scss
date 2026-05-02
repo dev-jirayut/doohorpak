@@ -1,0 +1,53 @@
+@use '../modules/variables' as v;
+@use '../modules/mixins' as m;
+
+.topbar {
+    height: v.$header-height;
+    background: #fff;
+    border-bottom: 1px solid rgba(v.$midnight, 0.07);
+    @include m.flex-between;
+    padding: 0 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 1px 0 rgba(v.$midnight, 0.04);
+
+    .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: v.$midnight;
+            font-size: 1.2rem;
+
+            @include m.responsive('lg') { display: flex; }
+        }
+
+        .property-switcher {
+            select {
+                border: 1.5px solid rgba(v.$midnight, 0.12);
+                border-radius: v.$border-radius-sm;
+                padding: 0.3rem 2rem 0.3rem 0.75rem;
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: v.$midnight;
+                background: v.$sand;
+                cursor: pointer;
+                outline: none;
+
+                &:focus { border-color: v.$jade; }
+            }
+        }
+    }
+
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+}

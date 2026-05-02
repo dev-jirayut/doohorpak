@@ -1,0 +1,100 @@
+@use '../modules/variables' as v;
+@use '../modules/mixins' as m;
+@use 'sass:color';
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: v.$border-radius-sm;
+    padding: 0.55rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
+    border: 1px solid transparent;
+    text-decoration: none;
+    min-height: 38px;
+    font-family: inherit;
+    white-space: nowrap;
+
+    i {
+        line-height: 1;
+        font-size: 1em;
+    }
+
+    &:hover { text-decoration: none; }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(v.$jade, 0.16);
+    }
+
+    &:active { transform: scale(0.97); }
+
+    &-primary   { background: v.$jade;    color: #fff; border-color: v.$jade; &:hover { background: v.$jade-dark; border-color: v.$jade-dark; } }
+    &-success   { background: v.$success; color: #fff; border-color: v.$success; &:hover { background: v.$jade-dark; border-color: v.$jade-dark; } }
+    &-secondary { background: #fff; color: v.$midnight; border-color: rgba(v.$midnight, 0.15); &:hover { background: v.$sand; border-color: rgba(v.$midnight, 0.22); } }
+    &-dark      { background: v.$midnight; color: #fff; border-color: v.$midnight; &:hover { background: color.adjust(v.$midnight, $lightness: 7%); border-color: color.adjust(v.$midnight, $lightness: 7%); } }
+    &-danger    { background: v.$danger;  color: #fff; border-color: v.$danger; &:hover { background: color.adjust(v.$danger, $lightness: -8%); border-color: color.adjust(v.$danger, $lightness: -8%); } }
+    &-warning   { background: v.$warning; color: #fff; border-color: v.$warning; &:hover { background: color.adjust(v.$warning, $lightness: -8%); border-color: color.adjust(v.$warning, $lightness: -8%); } }
+    &-ghost     { background: rgba(v.$jade, 0.06); color: v.$jade-dark; border-color: rgba(v.$jade, 0.16); &:hover { background: rgba(v.$jade, 0.11); border-color: rgba(v.$jade, 0.28); } }
+    &-link      { background: transparent; color: v.$jade; border-color: transparent; min-height: auto; &:hover { color: v.$jade-dark; background: rgba(v.$jade, 0.06); } }
+    &-sm        { padding: 0.38rem 0.7rem; font-size: 0.8rem; min-height: 32px; border-radius: 7px; }
+    &-lg        { padding: 0.78rem 1.35rem; font-size: 1rem; min-height: 46px; }
+    &-block     { width: 100%; justify-content: center; }
+
+    &-outline-primary,
+    &-outline-secondary,
+    &-outline-danger {
+        background: #fff;
+    }
+
+    &-outline-primary {
+        color: v.$jade-dark;
+        border-color: rgba(v.$jade, 0.35);
+
+        &:hover {
+            background: rgba(v.$jade, 0.08);
+            border-color: rgba(v.$jade, 0.55);
+        }
+    }
+
+    &-outline-secondary {
+        color: rgba(v.$midnight, 0.78);
+        border-color: rgba(v.$midnight, 0.15);
+
+        &:hover {
+            color: v.$midnight;
+            background: v.$sand;
+            border-color: rgba(v.$midnight, 0.25);
+        }
+    }
+
+    &-outline-danger {
+        color: v.$danger;
+        border-color: rgba(v.$danger, 0.35);
+
+        &:hover {
+            background: rgba(v.$danger, 0.08);
+            border-color: rgba(v.$danger, 0.5);
+        }
+    }
+
+    &[disabled] { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+}
+
+.btn-close {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+
+    &::before { content: "x"; font-weight: 700; }
+    &:hover { background: rgba(v.$midnight, 0.08); }
+}

@@ -1,0 +1,5 @@
+@extends('errors.layout')
+@section('code', '404')
+@section('icon', '🔍')
+@section('title', 'ไม่พบหน้าที่ต้องการ')
+@section('message', 'ขออภัย เราไม่พบหน้าที่คุณกำลังมองหา อาจถูกย้าย ลบ หรือลิงก์ผิดพลาด')

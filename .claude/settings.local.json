@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(valet --version)",
+      "Bash(valet links *)",
+      "Bash(~/.composer/vendor/bin/valet --version)",
+      "Bash(curl -sL \"https://fonts.gstatic.com/s/sarabun/v15/DtVmJx26TKEr37c9YHZ5.ttf\" -o \"Sarabun-Regular.ttf\")",
+      "Bash(curl -sL \"https://fonts.gstatic.com/s/sarabun/v15/DtVhJx26TKEr37c9YNpoikovQ.ttf\" -o \"Sarabun-Bold.ttf\")",
+      "Bash(curl -sL \"https://github.com/google/fonts/raw/main/ofl/sarabun/Sarabun-Regular.ttf\" -o \"Sarabun-Regular.ttf\")",
+      "Bash(curl -sL \"https://github.com/google/fonts/raw/main/ofl/sarabun/Sarabun-Bold.ttf\" -o \"Sarabun-Bold.ttf\")",
+      "Bash(php artisan *)",
+      "Bash(composer require *)",
+      "Bash(npm install *)",
+      "Bash(Test-Path \"c:\\\\Users\\\\Acer\\\\Desktop\\\\Nont Work\\\\doohorpak\\\\.gitignore\")"
+    ]
+  }
+}
