@@ -30,7 +30,10 @@ class ContractController extends Controller
         }
 
         $rentals  = Rental::with(['tenant', 'room'])
-            ->where('property_id', $property->id)
+            ->where(function ($query) use ($property) {
+                $query->where('property_id', $property->id)
+                    ->orWhereHas('room', fn ($roomQuery) => $roomQuery->where('property_id', $property->id));
+            })
             ->where('status', 'active')
             ->whereDoesntHave('contract', fn($q) => $q->whereIn('status', ['active']))
             ->get();
@@ -53,6 +56,26 @@ class ContractController extends Controller
             'paper_contract_images' => 'required|array|min:1|max:20',
             'paper_contract_images.*' => 'required|image|mimes:jpg,jpeg,png|max:10240',
         ]);
+
+        $rental = Rental::with('room')
+            ->where('id', $data['rental_id'])
+            ->where('status', 'active')
+            ->where(function ($query) use ($property) {
+                $query->where('property_id', $property->id)
+                    ->orWhereHas('room', fn ($roomQuery) => $roomQuery->where('property_id', $property->id));
+            })
+            ->whereDoesntHave('contract', fn ($query) => $query->where('status', 'active'))
+            ->first();
+
+        if (!$rental) {
+            return back()
+                ->withErrors(['rental_id' => 'This rental is not available for a new active contract.'])
+                ->withInput();
+        }
+
+        if (!$rental->property_id) {
+            $rental->update(['property_id' => $property->id]);
+        }
 
         $filePath = null;
         if ($request->hasFile('file')) {
