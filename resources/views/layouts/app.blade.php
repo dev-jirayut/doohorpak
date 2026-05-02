@@ -202,6 +202,16 @@
 {{-- ─── Mobile overlay ───────────────────────────────────────────────── --}}
 <div id="sidebarOverlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,44,44,.5);z-index:99;backdrop-filter:blur(2px)"></div>
 
+<div id="formLoadingOverlay" class="form-loading-overlay" aria-live="polite" aria-hidden="true">
+    <div class="form-loading-card">
+        <div class="form-loading-spinner"></div>
+        <div>
+            <div class="form-loading-title">กำลังบันทึกข้อมูล</div>
+            <div class="form-loading-text">กรุณารอสักครู่ ระบบกำลังดำเนินการ...</div>
+        </div>
+    </div>
+</div>
+
 {{-- ─── Main wrapper ─────────────────────────────────────────────────── --}}
 <div class="main-wrapper">
     {{-- Topbar --}}
@@ -272,6 +282,41 @@ document.addEventListener('click', function(e) {
     }
 });
 
+document.addEventListener('submit', function(e) {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    if (form.dataset.noLoading === 'true') return;
+    if ((form.getAttribute('method') || 'GET').toUpperCase() === 'GET') return;
+    if (form.dataset.submitting === 'true') {
+        e.preventDefault();
+        return;
+    }
+
+    form.dataset.submitting = 'true';
+
+    const submitter = e.submitter || form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
+    if (submitter) {
+        submitter.dataset.originalText = submitter.innerHTML || submitter.value || '';
+        submitter.disabled = true;
+
+        if (submitter.tagName === 'BUTTON') {
+            submitter.innerHTML = '<span class="btn-spinner"></span> กำลังบันทึก...';
+        } else {
+            submitter.value = 'กำลังบันทึก...';
+        }
+    }
+
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function(button) {
+        if (button !== submitter) button.disabled = true;
+    });
+
+    const overlay = document.getElementById('formLoadingOverlay');
+    if (overlay) {
+        overlay.classList.add('show');
+        overlay.setAttribute('aria-hidden', 'false');
+    }
+});
+
 @if(session('success'))
 Swal.fire({ toast:true, position:'top-end', icon:'success', title:@json(session('success')), showConfirmButton:false, timer:3500, timerProgressBar:true, customClass:{popup:'swal-jade'} });
 @endif
@@ -284,6 +329,64 @@ Swal.fire({ toast:true, position:'top-end', icon:'warning', title:@json(session(
 </script>
 <style>
 .swal-jade { font-family:'Sarabun',sans-serif !important; font-size:.9rem !important; }
+.form-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(0, 44, 44, 0.45);
+    backdrop-filter: blur(3px);
+}
+.form-loading-overlay.show {
+    display: flex;
+}
+.form-loading-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: min(420px, 100%);
+    padding: 1.2rem 1.35rem;
+    border: 1px solid rgba(161, 255, 209, 0.24);
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 24px 60px rgba(0, 44, 44, 0.22);
+    color: #002C2C;
+}
+.form-loading-spinner,
+.btn-spinner {
+    display: inline-block;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    border: 3px solid rgba(0, 168, 132, 0.18);
+    border-top-color: #00A884;
+    animation: form-spin 0.75s linear infinite;
+}
+.form-loading-spinner {
+    width: 42px;
+    height: 42px;
+}
+.btn-spinner {
+    width: 1em;
+    height: 1em;
+    margin-right: 0.35rem;
+    border-width: 2px;
+    vertical-align: -0.15em;
+}
+.form-loading-title {
+    font-weight: 800;
+    font-size: 1rem;
+}
+.form-loading-text {
+    margin-top: 0.15rem;
+    color: rgba(0, 44, 44, 0.58);
+    font-size: 0.86rem;
+}
+@keyframes form-spin {
+    to { transform: rotate(360deg); }
+}
 </style>
 </body>
 </html>
