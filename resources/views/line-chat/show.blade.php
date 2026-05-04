@@ -1,6 +1,8 @@
 @extends('layouts.app')
 @section('title', $conversation->display_label)
 
+@php use Illuminate\Support\Facades\Storage; @endphp
+
 @push('styles')
 <style>
 .chat-layout { display:flex; gap:1.5rem; align-items:flex-start; }
@@ -53,7 +55,21 @@
                         @if($msg->type === 'text')
                             {{ $msg->content }}
                         @elseif($msg->type === 'image')
-                            <i class="bi bi-image"></i> <em style="opacity:.7">รูปภาพ (ดูใน LINE)</em>
+                            @php
+                                $imageUrl = $msg->metadata['public_url'] ?? (
+                                    !empty($msg->metadata['stored_path'] ?? null) ? Storage::disk('public')->url($msg->metadata['stored_path']) : null
+                                );
+                            @endphp
+                            @if($imageUrl)
+                                <a href="{{ $imageUrl }}" target="_blank" rel="noopener">
+                                    <img src="{{ $imageUrl }}" alt="LINE image" style="display:block;max-width:260px;max-height:260px;border-radius:10px;object-fit:cover">
+                                </a>
+                            @else
+                                <i class="bi bi-image"></i> <em style="opacity:.7">รูปภาพยังไม่ได้ถูกดาวน์โหลด</em>
+                                @if(!empty($msg->metadata['download_error'] ?? null))
+                                    <div style="font-size:.72rem;opacity:.65;margin-top:.25rem">{{ $msg->metadata['download_error'] }}</div>
+                                @endif
+                            @endif
                         @elseif($msg->type === 'sticker')
                             <i class="bi bi-emoji-smile" style="font-size:1.5rem"></i>
                         @else

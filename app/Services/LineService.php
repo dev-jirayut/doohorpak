@@ -12,6 +12,7 @@ use App\Models\Tenant;
 use GuzzleHttp\Client;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class LineService
 {
@@ -479,6 +480,10 @@ class LineService
             $content = $type === 'text' ? $msgEvent['text'] : null;
             $meta    = $type !== 'text' ? $msgEvent : null;
 
+            if ($type === 'image') {
+                $meta = $this->storeLineMessageContent($msgEvent['id'], $accessToken, $property, $meta);
+            }
+
             LineMessage::create([
                 'conversation_id' => $conversation->id,
                 'line_message_id' => $msgEvent['id'],
@@ -558,5 +563,39 @@ class LineService
         }
 
         return $conv->fresh();
+    }
+
+    private function storeLineMessageContent(string $messageId, string $accessToken, Property $property, ?array $meta): ?array
+    {
+        $meta ??= [];
+
+        try {
+            $response = $this->http->get("https://api-data.line.me/v2/bot/message/{$messageId}/content", [
+                'headers' => ['Authorization' => "Bearer {$accessToken}"],
+            ]);
+
+            $contentType = $response->getHeaderLine('Content-Type') ?: 'image/jpeg';
+            $extension = match (strtolower(strtok($contentType, ';') ?: '')) {
+                'image/png' => 'png',
+                'image/gif' => 'gif',
+                'image/webp' => 'webp',
+                default => 'jpg',
+            };
+
+            $path = "line/messages/{$property->id}/{$messageId}.{$extension}";
+            Storage::disk('public')->put($path, (string) $response->getBody());
+
+            $meta['content_type'] = $contentType;
+            $meta['stored_path'] = $path;
+            $meta['public_url'] = Storage::disk('public')->url($path);
+        } catch (\Throwable $e) {
+            Log::warning("LINE image content download failed: {$e->getMessage()}", [
+                'message_id' => $messageId,
+                'property_id' => $property->id,
+            ]);
+            $meta['download_error'] = $e->getMessage();
+        }
+
+        return $meta;
     }
 }
