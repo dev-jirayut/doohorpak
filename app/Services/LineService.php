@@ -134,10 +134,10 @@ class LineService
         ];
     }
 
-    public function pushFlexMessage(string $lineUserId, string $altText, array $flexContent, Property $property): void
+    public function pushFlexMessage(string $lineUserId, string $altText, array $flexContent, Property $property): bool
     {
         $token = $property->lineSetting?->oa_channel_access_token;
-        if (!$token || !$lineUserId) return;
+        if (!$token || !$lineUserId) return false;
 
         try {
             $this->http->post('https://api.line.me/v2/bot/message/push', [
@@ -152,8 +152,11 @@ class LineService
                     ],
                 ],
             ]);
+
+            return true;
         } catch (\Throwable $e) {
             Log::error("LINE OA Flex error: {$e->getMessage()}");
+            return false;
         }
     }
 
@@ -237,6 +240,26 @@ class LineService
         $total = number_format($invoice->total_amount, 2);
         $room  = $rental?->room?->room_number ?? '-';
         $this->notifyOwner($property, "\n📋 ออกใบแจ้งหนี้ใหม่\nห้อง: {$room}\nผู้เช่า: {$tenant?->name}\nยอด: ฿{$total}");
+    }
+
+    public function sendInvoiceToTenant(Invoice $invoice): bool
+    {
+        $invoice->loadMissing(['rental.tenant.user', 'property.lineSetting']);
+
+        $tenant = $invoice->rental?->tenant;
+        $lineId = $tenant?->line_user_id ?? $tenant?->user?->line_user_id;
+        $property = $invoice->property;
+
+        if (!$lineId || !$property?->lineSetting?->oa_channel_access_token) {
+            return false;
+        }
+
+        return $this->pushFlexMessage(
+            $lineId,
+            "ใบแจ้งหนี้เดือน {$invoice->month}/{$invoice->year}",
+            $this->buildInvoiceFlexContent($invoice),
+            $property
+        );
     }
 
     public function sendPaymentConfirmation(Invoice $invoice): void

@@ -79,6 +79,7 @@ Route::middleware(['auth', 'role:super_admin,owner,staff'])->group(function () {
     Route::post('invoices/generate', [InvoiceController::class, 'generate'])->name('invoices.generate');
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');
+    Route::post('invoices/{invoice}/send-line', [InvoiceController::class, 'sendLine'])->name('invoices.send-line');
     Route::post('invoices/{invoice}/mark-paid', [PaymentController::class, 'markPaidManual'])->name('invoices.mark-paid');
     Route::delete('invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
 

@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Models\MeterReading;
 use App\Models\Room;
 use App\Services\InvoiceService;
+use App\Services\LineService;
 use App\Services\PlatformRevenueService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -82,6 +83,32 @@ class InvoiceController extends Controller
         $invoice->load(['rental.room.roomType', 'rental.tenant', 'items', 'property']);
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'))->setPaper('a4', 'portrait');
         return $pdf->stream('invoice-' . $invoice->invoice_number . '.pdf');
+    }
+
+    public function sendLine(Invoice $invoice, LineService $line)
+    {
+        $property = request()->get('current_property');
+        abort_if($property && $invoice->property_id !== $property->id, 403);
+        abort_if(!$property && ! request()->user()->isSuperAdmin(), 403);
+
+        $invoice->load(['rental.tenant.user', 'property.lineSetting']);
+
+        $tenant = $invoice->rental?->tenant;
+        $lineId = $tenant?->line_user_id ?? $tenant?->user?->line_user_id;
+
+        if (!$lineId) {
+            return back()->with('error', 'ยังไม่ได้ผูก LINE กับผู้เช่ารายนี้');
+        }
+
+        if (!$invoice->property?->lineSetting?->oa_channel_access_token) {
+            return back()->with('error', 'ยังไม่ได้ตั้งค่า LINE OA Channel Access Token');
+        }
+
+        if (! $line->sendInvoiceToTenant($invoice)) {
+            return back()->with('error', 'ส่งใบแจ้งหนี้เข้า LINE ไม่สำเร็จ กรุณาตรวจสอบ LINE token หรือ log');
+        }
+
+        return back()->with('success', 'ส่งใบแจ้งหนี้เข้า LINE แล้ว');
     }
 
     public function markPaid(Request $request, Invoice $invoice)

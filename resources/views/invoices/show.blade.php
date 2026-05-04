@@ -10,6 +10,12 @@
         <a href="{{ route('invoices.pdf', $invoice) }}" class="btn btn-sm btn-outline-danger" target="_blank">
             <i class="bi bi-file-pdf me-1"></i>PDF
         </a>
+        <form method="POST" action="{{ route('invoices.send-line', $invoice) }}">
+            @csrf
+            <button class="btn btn-sm btn-primary" title="ส่งใบแจ้งหนี้เข้า LINE ผู้เช่า">
+                <i class="bi bi-send me-1"></i>ส่ง LINE
+            </button>
+        </form>
         @if($invoice->status !== 'paid' && $invoice->status !== 'cancelled')
         <form method="POST" action="{{ route('invoices.destroy', $invoice) }}" onsubmit="return confirm('ยืนยันการลบ?')">
             @csrf @method('DELETE')
