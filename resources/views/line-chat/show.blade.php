@@ -73,9 +73,15 @@
                         @elseif($msg->type === 'sticker')
                             <i class="bi bi-emoji-smile" style="font-size:1.5rem"></i>
                         @elseif($msg->type === 'flex')
+                            @php $invoiceId = $msg->metadata['invoice_id'] ?? null; @endphp
                             <div style="font-weight:700;margin-bottom:.25rem"><i class="bi bi-receipt"></i> {{ $msg->metadata['alt_text'] ?? $msg->content ?? 'Flex Message' }}</div>
                             @if(!empty($msg->metadata['invoice_number'] ?? null))
                                 <div style="font-size:.78rem;opacity:.85">เลขที่: {{ $msg->metadata['invoice_number'] }}</div>
+                            @endif
+                            @if($invoiceId)
+                                <a href="{{ route('invoices.show', $invoiceId) }}" style="display:inline-flex;align-items:center;gap:.25rem;margin-top:.45rem;padding:.28rem .55rem;border-radius:6px;background:#fff;color:#007A60;font-size:.76rem;font-weight:700;text-decoration:none">
+                                    <i class="bi bi-box-arrow-up-right"></i> เปิดใบแจ้งหนี้
+                                </a>
                             @endif
                             <div style="font-size:.72rem;opacity:.7;margin-top:.25rem">ส่งเป็น Flex Message ใน LINE</div>
                         @else
