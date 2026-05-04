@@ -45,6 +45,19 @@
                 @error('oa_channel_secret')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
+            @if($property)
+            <div class="form-group">
+                <label class="form-label">LINE Webhook URL</label>
+                <input type="url" name="webhook_url" class="form-control @error('webhook_url') is-invalid @enderror"
+                    value="{{ old('webhook_url', $setting?->webhook_url ?? route('webhooks.line', $property->id)) }}"
+                    placeholder="https://your-domain.com/webhooks/line/{{ $property->id }}">
+                @error('webhook_url')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                <div style="font-size:.78rem;color:#888;margin-top:.25rem">
+                    นำ URL นี้ไปใส่ใน LINE Developers > Messaging API > Webhook settings
+                </div>
+            </div>
+            @endif
+
             <div class="form-group">
                 <label class="form-label">LINE User IDs สำหรับแจ้งเจ้าของ/แอดมิน</label>
                 <textarea name="admin_line_user_ids" rows="4" class="form-control"

@@ -10,7 +10,7 @@ class LineSetting extends Model
     protected $fillable = [
         'property_id', 'notify_token',
         'oa_channel_id', 'oa_channel_secret', 'oa_channel_access_token',
-        'admin_line_user_ids',
+        'admin_line_user_ids', 'webhook_url',
         'rich_menu_id', 'rich_menu_image_path', 'rich_menu_actions', 'rich_menu_created_at',
         'notify_on_invoice', 'notify_on_overdue',
         'notify_on_maintenance', 'notify_on_new_tenant',

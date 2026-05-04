@@ -64,6 +64,7 @@ class SettingController extends Controller
             'notify_token'             => 'nullable|string',
             'oa_channel_secret'        => 'nullable|string',
             'oa_channel_access_token'  => 'nullable|string',
+            'webhook_url'              => 'nullable|url|max:500',
             'admin_line_user_ids'      => 'nullable|string',
             'notify_on_invoice'        => 'boolean',
             'notify_on_overdue'        => 'boolean',
@@ -83,6 +84,7 @@ class SettingController extends Controller
             'notify_on_overdue'     => $request->boolean('notify_on_overdue'),
             'notify_on_maintenance' => $request->boolean('notify_on_maintenance'),
             'notify_on_new_tenant'  => $request->boolean('notify_on_new_tenant'),
+            'webhook_url'           => $data['webhook_url'] ?? route('webhooks.line', $property->id),
             'reminder_time'         => $data['reminder_time'],
         ];
 

@@ -14,7 +14,7 @@
         </a>
         <div style="font-size:.8rem;color:#888">
             <i class="bi bi-link-45deg"></i> Webhook URL:
-            <code style="background:#f5f5f5;padding:.15rem .4rem;border-radius:4px;font-size:.75rem">{{ route('webhooks.line', $property->id) }}</code>
+            <code style="background:#f5f5f5;padding:.15rem .4rem;border-radius:4px;font-size:.75rem">{{ $property->lineSetting?->webhook_url ?? route('webhooks.line', $property->id) }}</code>
         </div>
     </div>
     @elseif(!$property && auth()->user()->isSuperAdmin())
