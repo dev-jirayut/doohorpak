@@ -43,12 +43,14 @@
             <a href="{{ route('room-types.edit', $type) }}" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-pencil me-1"></i>แก้ไข
             </a>
-            <form method="POST" action="{{ route('room-types.destroy', $type) }}" onsubmit="return confirm('ยืนยันการลบ?')">
-                @csrf @method('DELETE')
-                <button class="btn btn-sm btn-outline-danger" @disabled($type->rooms_count > 0) title="{{ $type->rooms_count > 0 ? 'มีห้องใช้งานอยู่ ไม่สามารถลบได้' : 'ลบ' }}">
-                    <i class="bi bi-trash me-1"></i>ลบ
-                </button>
-            </form>
+            @if(auth()->user()->isSuperAdmin())
+                <form method="POST" action="{{ route('room-types.destroy', $type) }}" onsubmit="return confirm('ยืนยันการลบ?')">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-sm btn-outline-danger" @disabled($type->rooms_count > 0) title="{{ $type->rooms_count > 0 ? 'มีห้องใช้งานอยู่ ไม่สามารถลบได้' : 'ลบ' }}">
+                        <i class="bi bi-trash me-1"></i>ลบ
+                    </button>
+                </form>
+            @endif
         </div>
     </div>
     @endforeach

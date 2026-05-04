@@ -53,6 +53,8 @@ class RoomTypeController extends Controller
 
     public function destroy(RoomType $roomType)
     {
+        abort_unless(request()->user()?->isSuperAdmin(), 403);
+
         if ($roomType->rooms()->exists()) {
             return back()->with('error', 'ไม่สามารถลบได้เนื่องจากมีห้องพักใช้ประเภทนี้อยู่');
         }

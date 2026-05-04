@@ -12,7 +12,7 @@
             @csrf
             <div class="mb-3">
                 <label class="form-label fw-semibold">ชื่อประเภทห้อง <span class="text-danger">*</span></label>
-                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" placeholder="เช่น ห้องเดี่ยว, ห้องคู่">
+                <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" maxlength="100" placeholder="เช่น ห้องเดี่ยว, ห้องคู่">
                 @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
