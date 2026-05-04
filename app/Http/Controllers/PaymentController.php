@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\OmiseTransaction;
+use App\Models\WebhookLog;
 use App\Services\OmiseService;
 use App\Services\PlatformRevenueService;
 use Illuminate\Http\Request;
@@ -103,8 +104,13 @@ class PaymentController extends Controller
     {
         $payload = $request->getContent();
         $event   = json_decode($payload, true);
+        $log = $this->storeWebhookLog('omise', $request, is_array($event) ? $event : ['raw' => $payload], [
+            'event_type' => $event['key'] ?? null,
+            'external_id' => $event['id'] ?? null,
+        ]);
 
         if (!$event || !isset($event['key'])) {
+            $this->finishWebhookLog($log, 'invalid_payload', 400, 'Invalid Omise webhook payload.', ['ok' => false]);
             return response()->json(['ok' => false], 400);
         }
 
@@ -112,9 +118,11 @@ class PaymentController extends Controller
             $this->omise->handleWebhook($event);
         } catch (\Throwable $e) {
             Log::error("Webhook error: {$e->getMessage()}");
+            $this->finishWebhookLog($log, 'failed', 500, $e->getMessage(), ['ok' => false]);
             return response()->json(['ok' => false], 500);
         }
 
+        $this->finishWebhookLog($log, 'processed', 200, 'Processed Omise webhook.', ['ok' => true]);
         return response()->json(['ok' => true]);
     }
 
@@ -150,5 +158,49 @@ class PaymentController extends Controller
         app(PlatformRevenueService::class)->recordManualPayment($invoice->fresh('property'), $payment);
 
         return back()->with('success', 'บันทึกการชำระเงินเรียบร้อย');
+    }
+
+    private function storeWebhookLog(string $provider, Request $request, array $payload, array $extra = []): ?WebhookLog
+    {
+        try {
+            return WebhookLog::create(array_merge([
+                'provider' => $provider,
+                'status' => 'received',
+                'method' => $request->method(),
+                'url' => $request->fullUrl(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'headers' => $this->safeWebhookHeaders($request),
+                'payload' => $payload,
+            ], $extra));
+        } catch (\Throwable $e) {
+            Log::warning("Webhook log write failed: {$e->getMessage()}");
+            return null;
+        }
+    }
+
+    private function finishWebhookLog(?WebhookLog $log, string $status, int $responseStatus, ?string $message = null, ?array $response = null): void
+    {
+        if (!$log) return;
+
+        try {
+            $log->update([
+                'status' => $status,
+                'response_status' => $responseStatus,
+                'message' => $message,
+                'response' => $response,
+                'processed_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning("Webhook log update failed: {$e->getMessage()}");
+        }
+    }
+
+    private function safeWebhookHeaders(Request $request): array
+    {
+        return collect($request->headers->all())
+            ->except(['authorization', 'cookie', 'x-csrf-token'])
+            ->map(fn ($value) => is_array($value) ? implode(', ', $value) : $value)
+            ->all();
     }
 }

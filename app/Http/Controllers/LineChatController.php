@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\LineConversation;
 use App\Models\LineSetting;
+use App\Models\LineWebhookLog;
 use App\Models\Property;
 use App\Models\Tenant;
 use App\Services\LineService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class LineChatController extends Controller
 {
@@ -154,20 +156,40 @@ class LineChatController extends Controller
      */
     public function webhook(Request $request, Property $property)
     {
+        $payload = $request->json()->all();
+        $log = $this->storeLineWebhookLog($request, $property, $payload, [
+            'event_type' => collect($payload['events'] ?? [])->pluck('type')->filter()->unique()->implode(',') ?: null,
+            'webhook_event_id' => collect($payload['events'] ?? [])->pluck('webhookEventId')->filter()->first(),
+            'line_user_id' => collect($payload['events'] ?? [])->pluck('source.userId')->filter()->first(),
+        ]);
+
         // Verify LINE signature
         $setting = LineSetting::where('property_id', $property->id)->first();
-        if (!$setting?->oa_channel_secret) return response('', 200);
+        if (!$setting?->oa_channel_secret) {
+            $this->finishWebhookLog($log, 'skipped', 200, 'LINE channel secret is not configured.');
+            return response('', 200);
+        }
 
         $signature = $request->header('X-Line-Signature', '');
         $body      = $request->getContent();
         $expected  = base64_encode(hash_hmac('sha256', $body, $setting->oa_channel_secret, true));
 
         if (!hash_equals($expected, $signature)) {
+            $this->finishWebhookLog($log, 'invalid_signature', 400, 'Invalid LINE signature.', null, false);
             return response('Invalid signature', 400);
         }
 
-        $this->line->handleOaWebhook($request->json()->all(), $property);
+        $this->markLineSignatureValid($log, true);
 
+        try {
+            $this->line->handleOaWebhook($payload, $property);
+        } catch (\Throwable $e) {
+            $this->finishWebhookLog($log, 'failed', 500, $e->getMessage());
+            throw $e;
+        }
+
+        $eventCount = count($payload['events'] ?? []);
+        $this->finishWebhookLog($log, 'processed', 200, "Processed {$eventCount} LINE event(s).");
         return response('', 200);
     }
 
@@ -175,5 +197,67 @@ class LineChatController extends Controller
     {
         abort_if($property && $conversation->property_id !== $property->id, 403);
         abort_if(!$property && !request()->user()?->isSuperAdmin(), 403);
+    }
+
+    private function storeLineWebhookLog(Request $request, ?Property $property, array $payload, array $extra = []): ?LineWebhookLog
+    {
+        try {
+            return LineWebhookLog::create(array_merge([
+                'property_id' => $property?->id,
+                'status' => 'received',
+                'method' => $request->method(),
+                'url' => $request->fullUrl(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'signature' => $request->header('X-Line-Signature'),
+                'headers' => $this->safeWebhookHeaders($request),
+                'payload' => $payload,
+            ], $extra));
+        } catch (\Throwable $e) {
+            Log::warning("Webhook log write failed: {$e->getMessage()}");
+            return null;
+        }
+    }
+
+    private function finishWebhookLog(?LineWebhookLog $log, string $status, int $responseStatus, ?string $message = null, ?array $response = null, ?bool $signatureValid = null): void
+    {
+        if (!$log) return;
+
+        try {
+            $updates = [
+                'status' => $status,
+                'response_status' => $responseStatus,
+                'message' => $message,
+                'response' => $response,
+                'processed_at' => now(),
+            ];
+
+            if ($signatureValid !== null) {
+                $updates['signature_valid'] = $signatureValid;
+            }
+
+            $log->update($updates);
+        } catch (\Throwable $e) {
+            Log::warning("Webhook log update failed: {$e->getMessage()}");
+        }
+    }
+
+    private function markLineSignatureValid(?LineWebhookLog $log, bool $valid): void
+    {
+        if (!$log) return;
+
+        try {
+            $log->update(['signature_valid' => $valid]);
+        } catch (\Throwable $e) {
+            Log::warning("LINE webhook signature log update failed: {$e->getMessage()}");
+        }
+    }
+
+    private function safeWebhookHeaders(Request $request): array
+    {
+        return collect($request->headers->all())
+            ->only(['content-type', 'user-agent', 'x-line-signature'])
+            ->map(fn ($value) => is_array($value) ? implode(', ', $value) : $value)
+            ->all();
     }
 }
