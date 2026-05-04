@@ -157,6 +157,15 @@ class LineChatController extends Controller
     public function webhook(Request $request, Property $property)
     {
         $payload = $request->json()->all();
+        Log::info('LINE webhook received', [
+            'property_id' => $property->id,
+            'event_count' => count($payload['events'] ?? []),
+            'event_types' => collect($payload['events'] ?? [])->pluck('type')->filter()->unique()->values()->all(),
+            'line_user_id' => collect($payload['events'] ?? [])->pluck('source.userId')->filter()->first(),
+            'url' => $request->fullUrl(),
+            'ip' => $request->ip(),
+        ]);
+
         $log = $this->storeLineWebhookLog($request, $property, $payload, [
             'event_type' => collect($payload['events'] ?? [])->pluck('type')->filter()->unique()->implode(',') ?: null,
             'webhook_event_id' => collect($payload['events'] ?? [])->pluck('webhookEventId')->filter()->first(),
@@ -214,7 +223,10 @@ class LineChatController extends Controller
                 'payload' => $payload,
             ], $extra));
         } catch (\Throwable $e) {
-            Log::warning("Webhook log write failed: {$e->getMessage()}");
+            Log::warning("LINE webhook DB log write failed: {$e->getMessage()}", [
+                'table' => 'line_webhook_log',
+                'property_id' => $property?->id,
+            ]);
             return null;
         }
     }

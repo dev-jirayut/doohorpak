@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin'       => \App\Http\Middleware\AdminMiddleware::class,
             'role'        => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+        $middleware->preventRequestForgery(except: [
+            'webhooks/*',
+        ]);
         $middleware->appendToGroup('web', \App\Http\Middleware\CurrentPropertyMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
