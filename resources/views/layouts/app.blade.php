@@ -370,24 +370,38 @@ document.addEventListener('submit', function(e) {
     }
 });
 
-@if(session('success'))
-Swal.fire({ toast:true, position:'top-end', icon:'success', title:@json(session('success')), showConfirmButton:false, timer:3500, timerProgressBar:true, customClass:{popup:'swal-jade'} });
-@endif
-@if(session('error'))
-Swal.fire({ toast:true, position:'top-end', icon:'error', title:@json(session('error')), showConfirmButton:false, timer:4500, timerProgressBar:true, customClass:{popup:'swal-jade'} });
-@endif
-@if(session('warning'))
-Swal.fire({ toast:true, position:'top-end', icon:'warning', title:@json(session('warning')), showConfirmButton:false, timer:4000, timerProgressBar:true, customClass:{popup:'swal-jade'} });
-@endif
-@if(session('upload_too_large'))
-Swal.fire({
-    icon: 'error',
-    title: 'ไฟล์ใหญ่เกินไป',
-    text: @json(session('upload_too_large')),
-    confirmButtonText: 'ตกลง',
-    customClass: { popup: 'swal-jade' },
+document.addEventListener('DOMContentLoaded', function() {
+    function showFlashAlert(options) {
+        if (window.Swal) {
+            Swal.fire(options);
+            return;
+        }
+
+        alert(options.title || options.text || '');
+    }
+
+    @if(session('success'))
+    showFlashAlert({ toast:true, position:'top-end', icon:'success', title:@json(session('success')), showConfirmButton:false, timer:3500, timerProgressBar:true, customClass:{popup:'swal-jade'} });
+    @endif
+    @if(session('error'))
+    showFlashAlert({ toast:true, position:'top-end', icon:'error', title:@json(session('error')), showConfirmButton:false, timer:4500, timerProgressBar:true, customClass:{popup:'swal-jade'} });
+    @endif
+    @if(session('warning'))
+    showFlashAlert({ toast:true, position:'top-end', icon:'warning', title:@json(session('warning')), showConfirmButton:false, timer:4000, timerProgressBar:true, customClass:{popup:'swal-jade'} });
+    @endif
+    @if(session('info'))
+    showFlashAlert({ toast:true, position:'top-end', icon:'info', title:@json(session('info')), showConfirmButton:false, timer:3500, timerProgressBar:true, customClass:{popup:'swal-jade'} });
+    @endif
+    @if(session('upload_too_large'))
+    showFlashAlert({
+        icon: 'error',
+        title: 'ไฟล์ใหญ่เกินไป',
+        text: @json(session('upload_too_large')),
+        confirmButtonText: 'ตกลง',
+        customClass: { popup: 'swal-jade' },
+    });
+    @endif
 });
-@endif
 </script>
 <style>
 .swal-jade { font-family:'Sarabun',sans-serif !important; font-size:.9rem !important; }

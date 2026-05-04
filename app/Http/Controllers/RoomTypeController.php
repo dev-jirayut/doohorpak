@@ -22,7 +22,7 @@ class RoomTypeController extends Controller
     {
         $request->validate([
             'name'        => 'required|string|max:100',
-            'base_price'  => 'required|numeric|min:0',
+            'base_price'  => 'required|integer|min:0',
             'description' => 'nullable|string',
         ]);
 
@@ -41,7 +41,7 @@ class RoomTypeController extends Controller
     {
         $request->validate([
             'name'        => 'required|string|max:100',
-            'base_price'  => 'required|numeric|min:0',
+            'base_price'  => 'required|integer|min:0',
             'description' => 'nullable|string',
         ]);
 

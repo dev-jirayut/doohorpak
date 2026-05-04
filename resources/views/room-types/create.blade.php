@@ -17,7 +17,9 @@
             </div>
             <div class="mb-3">
                 <label class="form-label fw-semibold">ค่าห้องพื้นฐาน (บาท/เดือน) <span class="text-danger">*</span></label>
-                <input type="number" name="base_price" class="form-control @error('base_price') is-invalid @enderror" value="{{ old('base_price', 0) }}" min="0" step="0.01">
+                <input type="text" name="base_price" class="form-control @error('base_price') is-invalid @enderror"
+                    value="{{ old('base_price') !== null ? preg_replace('/\D/', '', old('base_price')) : 0 }}"
+                    inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/\D/g, '')">
                 @error('base_price')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-4">
