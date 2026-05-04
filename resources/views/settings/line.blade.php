@@ -12,20 +12,37 @@
         <form method="POST" action="{{ route('settings.line.store') }}" style="padding:1.5rem">
             @csrf
 
+            @if(! $property && auth()->user()->isSuperAdmin())
+            <div class="form-group">
+                <label class="form-label">หอพัก <span class="text-danger">*</span></label>
+                <select name="property_id" class="form-select @error('property_id') is-invalid @enderror">
+                    <option value="">-- เลือกหอพัก --</option>
+                    @foreach($properties as $item)
+                        <option value="{{ $item->id }}" {{ old('property_id') == $item->id ? 'selected' : '' }}>
+                            {{ $item->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('property_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            @endif
+
             <div class="form-group">
                 <label class="form-label">LINE OA Channel Access Token</label>
-                <input type="password" name="oa_channel_access_token" class="form-control"
+                <input type="password" name="oa_channel_access_token" class="form-control @error('oa_channel_access_token') is-invalid @enderror"
                     value="{{ old('oa_channel_access_token') }}"
                     placeholder="{{ $setting?->oa_channel_access_token ? 'ตั้งค่าแล้ว - เว้นว่างไว้ถ้าไม่เปลี่ยน' : 'สำหรับส่ง Flex Message ให้ผู้เช่า' }}"
                     autocomplete="new-password">
+                @error('oa_channel_access_token')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="form-group">
                 <label class="form-label">LINE OA Channel Secret</label>
-                <input type="password" name="oa_channel_secret" class="form-control"
+                <input type="password" name="oa_channel_secret" class="form-control @error('oa_channel_secret') is-invalid @enderror"
                     value="{{ old('oa_channel_secret') }}"
                     placeholder="{{ $setting?->oa_channel_secret ? 'ตั้งค่าแล้ว - เว้นว่างไว้ถ้าไม่เปลี่ยน' : 'สำหรับตรวจสอบ Webhook signature' }}"
                     autocomplete="new-password">
+                @error('oa_channel_secret')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="form-group">
@@ -60,8 +77,9 @@
 
             <div class="form-group">
                 <label class="form-label">เวลาแจ้งเตือน (สำหรับรายวัน)</label>
-                <input type="time" name="reminder_time" class="form-control"
+                <input type="time" name="reminder_time" class="form-control @error('reminder_time') is-invalid @enderror"
                     value="{{ old('reminder_time', $setting?->reminder_time ?? '09:00') }}" style="max-width:150px">
+                @error('reminder_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>บันทึก</button>

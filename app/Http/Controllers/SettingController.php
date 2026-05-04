@@ -8,6 +8,7 @@ use App\Models\UtilityRate;
 use App\Services\LineService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
 {
@@ -41,14 +42,23 @@ class SettingController extends Controller
     public function line(Request $request)
     {
         $property = $request->get('current_property');
+        $properties = $this->accessibleProperties($request);
         $setting  = $property ? LineSetting::firstOrNew(['property_id' => $property->id]) : null;
-        return view('settings.line', compact('setting'));
+        return view('settings.line', compact('setting', 'property', 'properties'));
     }
 
     public function storeLine(Request $request)
     {
         $property = $request->get('current_property');
-        abort_unless($property, 404);
+
+        if (! $property) {
+            $request->validate([
+                'property_id' => ['required', Rule::exists('properties', 'id')],
+            ]);
+
+            $property = Property::findOrFail($request->property_id);
+            abort_unless($request->user()->canAccessProperty($property->id), 403);
+        }
 
         $data = $request->validate([
             'notify_token'             => 'nullable|string',
@@ -85,6 +95,17 @@ class SettingController extends Controller
         LineSetting::updateOrCreate(['property_id' => $property->id], $payload);
 
         return back()->with('success', 'บันทึกการตั้งค่า LINE สำเร็จ');
+    }
+
+    private function accessibleProperties(Request $request)
+    {
+        $user = $request->user();
+
+        return match (true) {
+            $user->isSuperAdmin() => Property::where('is_active', true)->orderBy('name')->get(),
+            $user->isOwner()      => $user->ownedProperties()->where('is_active', true)->orderBy('name')->get(),
+            default               => $user->properties()->where('is_active', true)->orderBy('name')->get(),
+        };
     }
 
     public function richMenu(Request $request)
