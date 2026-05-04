@@ -35,11 +35,10 @@ class LineChatController extends Controller
         $conversation->update(['has_unread' => false]);
 
         $messages = $conversation->messages()->with('sentBy')->get();
-        $tenants  = Tenant::when($property, fn ($q) => $q->where('property_id', $property->id))
-            ->whereNull('line_user_id')
-            ->orWhereNull('id') // just to get all for linking dropdown
+        $allTenants = Tenant::with('activeRental.room')
+            ->where('property_id', $conversation->property_id)
+            ->orderBy('name')
             ->get();
-        $allTenants = Tenant::when($property, fn ($q) => $q->where('property_id', $property->id))->get();
 
         return view('line-chat.show', compact('conversation', 'messages', 'allTenants'));
     }
@@ -70,12 +69,30 @@ class LineChatController extends Controller
 
         $tenantId = $request->tenant_id;
         $chatName = $request->chat_name;
+        $previousTenantId = $conversation->tenant_id;
 
         // Auto-generate name from tenant if not manually set
         if ($tenantId && !$chatName) {
             $tenant = Tenant::find($tenantId);
+            abort_if($tenant->property_id && $tenant->property_id !== $conversation->property_id, 403);
+
             $room   = $tenant->activeRental?->room?->room_number;
             $chatName = $room ? "{$tenant->name} - ห้อง {$room}" : $tenant->name;
+        }
+
+        if ($tenantId) {
+            Tenant::where('property_id', $conversation->property_id)
+                ->where('line_user_id', $conversation->line_user_id)
+                ->where('id', '!=', $tenantId)
+                ->update(['line_user_id' => null]);
+
+            Tenant::whereKey($tenantId)->update([
+                'line_user_id' => $conversation->line_user_id,
+            ]);
+        } elseif ($previousTenantId) {
+            Tenant::whereKey($previousTenantId)
+                ->where('line_user_id', $conversation->line_user_id)
+                ->update(['line_user_id' => null]);
         }
 
         $conversation->update([

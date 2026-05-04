@@ -34,6 +34,11 @@
     <div>
         <div style="font-weight:700;color:#002C2C">{{ $conversation->display_label }}</div>
         <div style="font-size:.75rem;color:#888">LINE: {{ $conversation->line_user_id }}</div>
+        @if($conversation->tenant?->line_user_id === $conversation->line_user_id)
+        <div style="font-size:.72rem;color:#00A884;font-weight:700"><i class="bi bi-check-circle"></i> ผูกกับผู้เช่าแล้ว</div>
+        @else
+        <div style="font-size:.72rem;color:#f59e0b;font-weight:700"><i class="bi bi-exclamation-circle"></i> ยังไม่ผูกกับผู้เช่า</div>
+        @endif
     </div>
 </div>
 
@@ -83,7 +88,7 @@
     <div class="chat-sidebar">
         {{-- Label / Link tenant --}}
         <div class="card" style="margin-bottom:1rem">
-            <div class="card-header"><h6 style="margin:0">ตั้งชื่อแชท / เชื่อมผู้เช่า</h6></div>
+            <div class="card-header"><h6 style="margin:0">ตั้งชื่อแชท / ผูก LINE กับผู้เช่า</h6></div>
             <div style="padding:1rem">
                 <form method="POST" action="{{ route('line-chat.label', $conversation) }}">
                     @csrf @method('PATCH')
@@ -92,7 +97,7 @@
                         <input type="text" name="chat_name" class="form-control" value="{{ $conversation->chat_name }}" placeholder="เว้นว่าง = ใช้ชื่อผู้เช่า">
                     </div>
                     <div class="form-group" style="margin-bottom:.75rem">
-                        <label class="form-label">เชื่อมกับผู้เช่า</label>
+                        <label class="form-label">ผูก LINE นี้กับผู้เช่า</label>
                         <select name="tenant_id" class="form-control form-select">
                             <option value="">-- ไม่เชื่อม --</option>
                             @foreach($allTenants as $t)
@@ -102,7 +107,7 @@
                             </option>
                             @endforeach
                         </select>
-                        <div style="font-size:.75rem;color:#888;margin-top:.3rem">เมื่อเชื่อม จะใช้ชื่อผู้เช่า + ห้องเป็นชื่อแชท</div>
+                        <div style="font-size:.75rem;color:#888;margin-top:.3rem">เมื่อบันทึก ระบบจะเก็บ LINE userId นี้ไว้ในข้อมูลผู้เช่า เพื่อส่งใบแจ้งหนี้และข้อความแจ้งเตือน</div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm btn-block">บันทึก</button>
                 </form>
