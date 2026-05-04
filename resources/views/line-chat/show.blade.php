@@ -72,6 +72,12 @@
                             @endif
                         @elseif($msg->type === 'sticker')
                             <i class="bi bi-emoji-smile" style="font-size:1.5rem"></i>
+                        @elseif($msg->type === 'flex')
+                            <div style="font-weight:700;margin-bottom:.25rem"><i class="bi bi-receipt"></i> {{ $msg->metadata['alt_text'] ?? $msg->content ?? 'Flex Message' }}</div>
+                            @if(!empty($msg->metadata['invoice_number'] ?? null))
+                                <div style="font-size:.78rem;opacity:.85">เลขที่: {{ $msg->metadata['invoice_number'] }}</div>
+                            @endif
+                            <div style="font-size:.72rem;opacity:.7;margin-top:.25rem">ส่งเป็น Flex Message ใน LINE</div>
                         @else
                             <i class="bi bi-paperclip"></i> {{ $msg->type }}
                         @endif

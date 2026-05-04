@@ -254,12 +254,25 @@ class LineService
             return false;
         }
 
-        return $this->pushFlexMessage(
+        $flex = $this->buildInvoiceFlexContent($invoice);
+        $altText = "ใบแจ้งหนี้เดือน {$invoice->month}/{$invoice->year}";
+
+        $sent = $this->pushFlexMessage(
             $lineId,
-            "ใบแจ้งหนี้เดือน {$invoice->month}/{$invoice->year}",
-            $this->buildInvoiceFlexContent($invoice),
+            $altText,
+            $flex,
             $property
         );
+
+        if ($sent) {
+            $this->storeOutboundFlexMessage($property, $lineId, $altText, $flex, [
+                'source' => 'manual_invoice_send',
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+            ]);
+        }
+
+        return $sent;
     }
 
     public function sendPaymentConfirmation(Invoice $invoice): void
@@ -586,6 +599,34 @@ class LineService
         }
 
         return $conv->fresh();
+    }
+
+    private function storeOutboundFlexMessage(Property $property, string $lineUserId, string $altText, array $flexContent, array $metadata = []): void
+    {
+        $conversation = LineConversation::firstOrCreate(
+            ['property_id' => $property->id, 'line_user_id' => $lineUserId],
+        );
+
+        if (!$conversation->tenant_id) {
+            $tenant = Tenant::where('property_id', $property->id)
+                ->where('line_user_id', $lineUserId)
+                ->first();
+
+            if ($tenant) {
+                $conversation->update(['tenant_id' => $tenant->id]);
+            }
+        }
+
+        LineMessage::create([
+            'conversation_id' => $conversation->id,
+            'direction' => 'outbound',
+            'type' => 'flex',
+            'content' => $altText,
+            'metadata' => $metadata + ['alt_text' => $altText, 'contents' => $flexContent],
+            'sent_by_user_id' => auth()->id(),
+        ]);
+
+        $conversation->update(['last_message_at' => now()]);
     }
 
     private function storeLineMessageContent(string $messageId, string $accessToken, Property $property, ?array $meta): ?array
