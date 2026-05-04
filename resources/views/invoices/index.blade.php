@@ -14,7 +14,7 @@
         <form method="GET" class="row g-2 align-items-end">
             <div class="col-auto">
                 <select name="month" class="form-select form-select-sm">
-                    <option value="">ทุกเดือน</option>
+                    <option value="">เลือกเดือน</option>
                     @foreach(range(1,12) as $m)
                         <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>{{ $m }}</option>
                     @endforeach
@@ -22,7 +22,7 @@
             </div>
             <div class="col-auto">
                 <select name="year" class="form-select form-select-sm">
-                    <option value="">ทุกปี</option>
+                    <option value="">เลือกปี</option>
                     @foreach(range(now()->year, now()->year - 3, -1) as $y)
                         <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endforeach
@@ -30,7 +30,7 @@
             </div>
             <div class="col-auto">
                 <select name="status" class="form-select form-select-sm">
-                    <option value="">ทุกสถานะ</option>
+                    <option value="">เลือกสถานะ</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>รอชำระ</option>
                     <option value="paid"    {{ request('status') == 'paid'    ? 'selected' : '' }}>ชำระแล้ว</option>
                     <option value="overdue" {{ request('status') == 'overdue' ? 'selected' : '' }}>เกินกำหนด</option>
