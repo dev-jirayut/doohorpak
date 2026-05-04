@@ -11,6 +11,20 @@
     <div class="card-body">
         <form method="POST" action="{{ route('rooms.store') }}">
             @csrf
+            @if(! $property && auth()->user()->isSuperAdmin())
+            <div class="mb-3">
+                <label class="form-label fw-semibold">หอพัก <span class="text-danger">*</span></label>
+                <select name="property_id" class="form-select @error('property_id') is-invalid @enderror">
+                    <option value="">-- เลือกหอพัก --</option>
+                    @foreach($properties as $item)
+                        <option value="{{ $item->id }}" {{ old('property_id') == $item->id ? 'selected' : '' }}>
+                            {{ $item->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('property_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            @endif
             <div class="mb-3">
                 <label class="form-label fw-semibold">เลขห้อง <span class="text-danger">*</span></label>
                 <input type="text" name="room_number" class="form-control @error('room_number') is-invalid @enderror"

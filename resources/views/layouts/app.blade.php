@@ -25,7 +25,7 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <a href="{{ route('dashboard') }}" class="logo">
-            <img src="{{ asset('icon.png') }}" alt="{{ config('app.name') }}">
+            <img src="{{ asset('images/icon.png') }}" alt="{{ config('app.name') }}">
             <span>ดูหอพัก <strong>DooHorPak</strong></span>
         </a>
 

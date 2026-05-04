@@ -58,6 +58,10 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
             'throw'                   => true,
             'report'                  => true,
+            'http'                    => [
+                'connect_timeout' => (float) env('AWS_CONNECT_TIMEOUT', 5),
+                'timeout' => (float) env('AWS_TIMEOUT', 30),
+            ],
         ],
 
         // Supabase Storage (S3-compatible)
@@ -73,6 +77,10 @@ return [
             'throw'                   => true,
             'report'                  => true,
             'visibility'              => 'public',
+            'http'                    => [
+                'connect_timeout' => (float) env('SUPABASE_CONNECT_TIMEOUT', env('AWS_CONNECT_TIMEOUT', 5)),
+                'timeout' => (float) env('SUPABASE_TIMEOUT', env('AWS_TIMEOUT', 30)),
+            ],
         ],
 
     ],

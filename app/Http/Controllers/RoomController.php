@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Room;
 use App\Models\RoomType;
+use App\Models\Property;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RoomController extends Controller
 {
@@ -26,21 +28,37 @@ class RoomController extends Controller
 
     public function create(Request $request)
     {
-        if (! $request->get('current_property')) {
+        $property = $request->get('current_property');
+        $properties = $this->accessibleProperties($request);
+
+        if (! $property && (! $request->user()->isSuperAdmin() || $properties->isEmpty())) {
             return redirect()->route('rooms.index')->with('error', 'กรุณาเลือกหอพักก่อนเพิ่มห้อง');
         }
 
         $roomTypes = RoomType::orderBy('name')->get();
-        return view('rooms.create', compact('roomTypes'));
+        return view('rooms.create', compact('roomTypes', 'properties', 'property'));
     }
 
     public function store(Request $request)
     {
         $property = $request->get('current_property');
-        abort_unless($property, 404);
+
+        if (! $property) {
+            $request->validate([
+                'property_id' => ['required', Rule::exists('properties', 'id')],
+            ]);
+
+            $property = Property::findOrFail($request->property_id);
+            abort_unless($request->user()->canAccessProperty($property->id), 403);
+        }
 
         $request->validate([
-            'room_number'  => 'required|string|max:20|unique:rooms',
+            'room_number'  => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('rooms')->where(fn ($query) => $query->where('property_id', $property->id)),
+            ],
             'floor'        => 'required|integer|min:1',
             'room_type_id' => 'required|exists:room_types,id',
             'description'  => 'nullable|string',
@@ -51,6 +69,17 @@ class RoomController extends Controller
         ]);
 
         return redirect()->route('rooms.index')->with('success', 'เพิ่มห้องพักสำเร็จ');
+    }
+
+    private function accessibleProperties(Request $request)
+    {
+        $user = $request->user();
+
+        return match (true) {
+            $user->isSuperAdmin() => Property::where('is_active', true)->orderBy('name')->get(),
+            $user->isOwner()      => $user->ownedProperties()->where('is_active', true)->orderBy('name')->get(),
+            default               => $user->properties()->where('is_active', true)->orderBy('name')->get(),
+        };
     }
 
     public function show(Room $room)
