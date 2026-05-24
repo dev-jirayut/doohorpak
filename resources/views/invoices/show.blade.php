@@ -109,8 +109,11 @@
 
     <div class="col-md-5">
         @if($invoice->status !== 'paid' && $invoice->status !== 'cancelled')
-        <div class="card border-success">
-            <div class="card-header bg-success text-white"><i class="bi bi-cash me-2"></i>บันทึกการชำระเงิน</div>
+        <div class="card payment-action-card">
+            <div class="payment-action-header">
+                <span class="payment-action-icon"><i class="bi bi-cash"></i></span>
+                <span>บันทึกการชำระเงิน</span>
+            </div>
             <div class="card-body">
                 <form method="POST" action="{{ route('invoices.mark-paid', $invoice) }}">
                     @csrf

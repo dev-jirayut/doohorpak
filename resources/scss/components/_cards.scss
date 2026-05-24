@@ -139,6 +139,39 @@
     }
 }
 
+.payment-action-card {
+    padding: 0;
+    overflow: hidden;
+    border-color: rgba(v.$jade, 0.22);
+
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+
+.payment-action-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin: 0;
+    padding: 1rem 1.25rem;
+    border-bottom: 0;
+    background: v.$jade;
+    color: #fff;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.payment-action-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    @include m.flex-center;
+    flex-shrink: 0;
+}
+
 @media (max-width: 576px) {
     .detail-list {
         padding: 1rem;
